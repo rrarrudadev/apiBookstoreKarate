@@ -1,0 +1,6 @@
+{
+  "token": "#string",
+  "expires": "#string",
+  "status": "#string",
+  "result": "#string"
+}
