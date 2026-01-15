@@ -1,6 +1,6 @@
 Feature: Auth helper (cria usuário e gera token uma vez)
   Background:
-    * def baseUrl = karate.get('baseUrl')
+    * def baseUrl = baseUrl
 
   Scenario: Criar usuário e gerar token
     * def rand = java.util.UUID.randomUUID() + ''
