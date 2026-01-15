@@ -5,7 +5,7 @@ Feature: BookStore endpoints (GET, POST, PUT)
     * def auth = karate.get('auth')
     * def authHeader = { Authorization: '#("Bearer " + auth.token)' }
 
-  Scenario Outline: [SUCESSO] Listar catálogo de livros e Listar catálogo de livros com ISBN dinâmico
+  Scenario: [SUCESSO] Listar catálogo de livros e buscar livro com ISBN dinâmico
   # GET Books
     Given url baseUrl
     And path '/BookStore/v1/Books'
@@ -24,10 +24,6 @@ Feature: BookStore endpoints (GET, POST, PUT)
     And match response contains read('classpath:schema/bookstore-book.json')
     And match response.isbn == firstIsbn
 
-    Examples:
-      | case |
-      | ok   |
-
   Scenario Outline: [FALHA] Listar livro com ISBN inválido
     Given url baseUrl
     And path '/BookStore/v1/Book'
@@ -40,14 +36,13 @@ Feature: BookStore endpoints (GET, POST, PUT)
       | isbn         | status |
       | INVALID_ISBN | 400    |
 
-  Scenario Outline: [SUCESSO] Adicionar livro ao usuário com ISBN dinâmico
-
-  # Criando usuário temporário (evita ISBN duplicado)
-    * def temp = call read('classpath:auth/auth.feature')
+  Scenario: [SUCESSO] Adicionar livro ao usuário com ISBN dinâmico
+  # Usuário temporário (evita afetar auth principal do karate-config)
+    * def temp = call read('classpath:auth/auth.feature') { baseUrl: '#(baseUrl)' }
     * def tempAuth = temp.auth
     * def tempHeader = { Authorization: '#("Bearer " + tempAuth.token)' }
 
-  # Pega o ISBN dinâmicamente
+  # Pega o ISBN dinamicamente
     Given url baseUrl
     And path '/BookStore/v1/Books'
     When method get
@@ -71,13 +66,9 @@ Feature: BookStore endpoints (GET, POST, PUT)
     When method delete
     Then status 204
 
-    Examples:
-      | case |
-      | ok   |
-
-  Scenario Outline: [FALHA] Adicionar ao usuário um livro com o ISBN duplicado na coleção
-  # usuário temporário
-    * def temp = call read('classpath:auth/auth.feature')
+  Scenario: [FALHA] Adicionar ao usuário um livro com o ISBN duplicado na coleção
+  # Usuário temporário
+    * def temp = call read('classpath:auth/auth.feature') { baseUrl: '#(baseUrl)' }
     * def tempAuth = temp.auth
     * def tempHeader = { Authorization: '#("Bearer " + tempAuth.token)' }
 
@@ -106,24 +97,20 @@ Feature: BookStore endpoints (GET, POST, PUT)
     And match response contains read('classpath:schema/error-code-message.json')
     And match response.message contains 'already'
 
-  # cleanup do usuário temporário
+  # Cleanup do usuário temporário
     Given url baseUrl
     And path '/Account/v1/User', tempAuth.userId
     And headers tempHeader
     When method delete
     Then status 204
 
-    Examples:
-      | case |
-      | dup  |
-
-  Scenario Outline: [SUCESSO] Trocar o ISBN de um livro
-  # usuário temporário
-    * def temp = call read('classpath:auth/auth.feature')
+  Scenario: [SUCESSO] Trocar o ISBN de um livro
+  # Usuário temporário
+    * def temp = call read('classpath:auth/auth.feature') { baseUrl: '#(baseUrl)' }
     * def tempAuth = temp.auth
     * def tempHeader = { Authorization: '#("Bearer " + tempAuth.token)' }
 
-  # pega 2 ISBNs
+  # Pega 2 ISBNs
     Given url baseUrl
     And path '/BookStore/v1/Books'
     When method get
@@ -131,7 +118,7 @@ Feature: BookStore endpoints (GET, POST, PUT)
     * def oldIsbn = response.books[0].isbn
     * def newIsbn = response.books[1].isbn
 
-  # adiciona oldIsbn
+  # Adiciona oldIsbn
     Given url baseUrl
     And path '/BookStore/v1/Books'
     And headers tempHeader
@@ -139,7 +126,7 @@ Feature: BookStore endpoints (GET, POST, PUT)
     When method post
     Then status 201
 
-  # troca old -> new
+  # Troca old -> new
     Given url baseUrl
     And path '/BookStore/v1/Books', oldIsbn
     And headers tempHeader
@@ -149,31 +136,27 @@ Feature: BookStore endpoints (GET, POST, PUT)
     And match response contains read('classpath:schema/bookstore-user.json')
     And match response.books[*].isbn contains newIsbn
 
-  # cleanup do usuário temporário
+  # Cleanup do usuário temporário
     Given url baseUrl
     And path '/Account/v1/User', tempAuth.userId
     And headers tempHeader
     When method delete
     Then status 204
 
-    Examples:
-      | case |
-      | ok   |
-
   Scenario Outline: [FALHA] Tentar trocar o ISBN antigo para um novo inválido
-  # usuário temporário
-    * def temp = call read('classpath:auth/auth.feature')
+  # Usuário temporário
+    * def temp = call read('classpath:auth/auth.feature') { baseUrl: '#(baseUrl)' }
     * def tempAuth = temp.auth
     * def tempHeader = { Authorization: '#("Bearer " + tempAuth.token)' }
 
-  # pega 1 ISBN válido e define em "old"
+  # Pega 1 ISBN válido e define em "old"
     Given url baseUrl
     And path '/BookStore/v1/Books'
     When method get
     Then status 200
     * def oldIsbn = response.books[0].isbn
 
-  # adiciona oldIsbn
+  # Adiciona oldIsbn
     Given url baseUrl
     And path '/BookStore/v1/Books'
     And headers tempHeader
@@ -181,7 +164,7 @@ Feature: BookStore endpoints (GET, POST, PUT)
     When method post
     Then status 201
 
-  # tenta trocar para um ISBN inválido
+  # Tenta trocar para um ISBN inválido
     Given url baseUrl
     And path '/BookStore/v1/Books', oldIsbn
     And headers tempHeader
@@ -190,7 +173,7 @@ Feature: BookStore endpoints (GET, POST, PUT)
     Then status <status>
     And match response contains read('classpath:schema/error-code-message.json')
 
-  # cleanup do usuário temporário
+  # Cleanup do usuário temporário
     Given url baseUrl
     And path '/Account/v1/User', tempAuth.userId
     And headers tempHeader
