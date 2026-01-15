@@ -71,8 +71,8 @@ Feature: Account endpoints (User, GenerateToken, Delete User)
  # Cria um usuário "temporário" só para ser deletado (não quebra o auth principal)
 
   Scenario Outline: [SUCESSO] Deletar um usuário
-    * def temp = call read('classpath:auth/auth.feature')
-    * def tempAuth = temp.auth ? temp.auth : karate.get('auth')
+    * def temp = call read('classpath:auth/auth.feature') { baseUrl: '#(baseUrl)' }
+    * def tempAuth = temp.auth
     * def tempHeader = { Authorization: '#("Bearer " + tempAuth.token)' }
 
     Given url baseUrl
